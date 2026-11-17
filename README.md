@@ -1,76 +1,201 @@
 # Delivery Performance Analytics
 
-**Python · PostgreSQL · pandas · Excel · GitHub Actions**
+**Finding the shipping lanes that contribute most to late deliveries — and automating the follow-up.**
 
-**Business question:** Where should a delivery operations team focus its limited investigation time?
+[![Tests and PostgreSQL analysis](https://github.com/VinayReddy-9877/delivery-performance-analytics/actions/workflows/ci.yml/badge.svg)](https://github.com/VinayReddy-9877/delivery-performance-analytics/actions/workflows/ci.yml)
+[![Historical weekly lane alerts](https://github.com/VinayReddy-9877/delivery-performance-analytics/actions/workflows/weekly_report.yml/badge.svg)](https://github.com/VinayReddy-9877/delivery-performance-analytics/actions/workflows/weekly_report.yml)
 
-I looked at late deliveries across customer states and shipping lanes, then built a repeatable way to report the results. The unit of analysis is an order, not an individual item. The dataset is a historical Olist extract from 2016–2018.
+**Python · PostgreSQL · SQL · pandas · Excel · GitHub Actions**
 
-## The finding
+**[Live dashboard](https://vinayreddy-9877.github.io/delivery-performance-analytics/)** · **[Sample Excel workbook](report/sample/operations_workbook.xlsx)** · **[One-page operations memo](report/sample/01_insight_memo.pdf)** · **[Sample HTML report](report/sample/weekly_brief.html)** · **[Automated lane alert](https://github.com/VinayReddy-9877/delivery-performance-analytics/issues/1)**
 
-- **6,534 of 96,470 assessable orders (6.8%)** arrived after the promised date. These orders contained **R$985,924** in merchandise value; that is not a measure of lost revenue.
-- **SP → RJ is the highest-volume lane to investigate.** It had **1,147 late orders out of 8,048 (14.3%)**. At the 4.6% same-state benchmark, that is roughly **780 more late orders** than the benchmark predicts. Compared with *other cross-state* lanes, the difference is still approximately **567 orders**.
-- The problem was uneven over time. **SP → RJ reached 42.4% late in March 2018**. I would monitor completed-delivery weeks and review carrier and seller records when the lane spikes, rather than change promises for every RJ customer.
+## Business problem
 
-![SP to RJ delivery performance by month](report/sample/figures/sp_rj_by_month.png)
+An e-commerce operations team cannot investigate every delayed delivery. It needs to know **which shipping lanes account for the largest number of late orders**, whether the problem is persistent or concentrated in particular periods, and when to investigate an unusual increase.
 
-**Open the results:** [HTML report](report/sample/weekly_brief.html) · [Excel workbook](report/sample/operations_workbook.xlsx) · [One-page decision memo](report/sample/01_insight_memo.pdf)
+I used historical orders from the [Olist Brazilian E-Commerce dataset](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) to answer that question. The project combines order-level analysis, PostgreSQL queries, an Excel scorecard, a management report, and a scheduled historical reporting workflow. The emphasis is on **decision-making and reproducible analysis**, not prediction.
 
-## Skills demonstrated
+## Key findings
 
-| Skill | Where to look |
+| Finding | Evidence | Operational takeaway |
+|---|---|---|
+| Overall delivery performance | **6,534 of 96,470 assessed orders (6.77%)** arrived after the promised date | Monitor the count and rate of late deliveries together |
+| Merchandise associated with delays | **BRL 985,924.34** of merchandise GMV was on late orders, out of **BRL 13.22M** overall | Prioritize exposure, but do not treat this value as lost revenue |
+| Highest-volume lane for investigation | **São Paulo → Rio de Janeiro (SP → RJ): 1,147 late out of 8,048 orders (14.3%)** | Investigate the lane with the largest excess late-order count |
+| Benchmark comparison | SP → RJ had about **780 more late orders** than a 4.56% same-state benchmark; approximately **567 more** than a 7.21% *other cross-state* benchmark | The lane remains a priority with a stricter comparison group |
+| Timing matters | SP → RJ reached **42.4% late in March 2018** | Watch for episodic spikes instead of assuming the rate is constant |
+
+**The recommendation:** review SP → RJ by completed-delivery week, investigate the sellers, carriers and periods behind spikes, and test any intervention before estimating financial benefit. The benchmark differences are **descriptive comparisons, not estimates of preventable delays**.
+
+![SP to RJ late-delivery rate by purchase month](report/sample/figures/sp_rj_by_month.png)
+
+See the [methodology and benchmark sensitivity checks](docs/method.md) for the metric definitions and limitations.
+
+## What the project delivers
+
+| Deliverable | Purpose |
 |---|---|
-| SQL | [Nine business questions](sql/README.md): joins, windows, rolling periods, percentiles and lane benchmarking |
-| Python | [`src/delivery_analytics`](src/delivery_analytics): validation, analysis, reporting and refresh |
-| Excel | Workbook with lane-month source rows, `SUMIFS` scorecard, month-by-lane matrix and editable alert threshold |
-| Data quality | Order/item merchandise reconciliation, key checks and test cases |
-| Automation | Historical weekly replay and compatible CSV batch refresh; each run has its own output folder |
+| [Live weekly dashboard](https://vinayreddy-9877.github.io/delivery-performance-analytics/) | Shows completed deliveries, late rates, flagged lanes and historical trend charts |
+| [Excel operations workbook](report/sample/operations_workbook.xlsx) | Includes lane-level source rows, `SUMIFS` scorecards, a month-by-lane comparison and an adjustable alert multiplier |
+| [One-page decision memo](report/sample/01_insight_memo.pdf) | Summarizes the finding, why it matters and the next operational checks |
+| [Nine SQL analyses](sql/README.md) | Demonstrates analytical joins, CTEs, window functions, rolling periods, percentiles and lane benchmarking |
+| GitHub Actions reports | Runs quality checks and historical weekly reporting; uploads report artifacts |
+| [GitHub lane alert example](https://github.com/VinayReddy-9877/delivery-performance-analytics/issues/1) | Records an automatically flagged lane for follow-up |
 
-## Run it
+## How the analysis works
 
-Requires **Python 3.12**. On Windows, run `run_project.bat` from the project folder. Alternatively:
+```text
+Prepared Olist order + item data
+           |
+           v
+Validate IDs, timestamps, order grain and merchandise totals
+           |
+           v
+Calculate delivery KPIs, state/lane comparisons and monthly trends
+           |
+           +--> PostgreSQL analytical tables + nine SQL analyses
+           |
+           +--> Excel scorecard + charts + one-page memo + HTML report
+           |
+           v
+Historical weekly replay (completed deliveries only)
+           |
+           v
+Compare lane late rates with earlier completed-delivery baseline
+           |
+           +--> Save weekly report artifact
+           +--> Create/update GitHub issue when alert rule is met
+           +--> Publish latest HTML dashboard to GitHub Pages
+```
+
+### Metric definitions
+
+- **Order grain:** each row in `orders_history.csv` represents one order; `order_items.csv` contains its items. Order-level delivery KPIs count each order once.
+- **Late delivery:** actual delivery **calendar date** is later than the estimated delivery **calendar date**. An order must have both dates to enter the assessed-order denominator.
+- **Late-delivery rate:** `late orders / assessed orders`. The included extract has **96,478 orders**, of which **96,470** have assessable delivery outcomes.
+- **Merchandise GMV:** sum of item prices, excluding freight. The order and item totals reconcile to **BRL 0.00** difference.
+- **Shipping lane:** seller state → customer state. Direct lane comparisons use **single-seller orders** so one order has one clear seller origin.
+- **Excess versus benchmark:** `observed late orders − (assessed lane orders × benchmark late rate)`. It is a ranking aid, **not a causal savings forecast**.
+
+Seller-level SQL uses distinct `(order_id, seller_id)` pairs to avoid counting multiple items from the same seller as multiple seller orders. Because a multi-seller order can be attributed to multiple participants, seller-attributed counts should not be summed as unique orders. Details are in [docs/method.md](docs/method.md).
+
+## Automated reporting
+
+There are **two separate workflows**:
+
+**1. Tests and PostgreSQL analysis — [CI workflow](.github/workflows/ci.yml)**  
+On a push or pull request, GitHub Actions starts PostgreSQL 16, installs the Python dependencies, builds analytical tables, runs the Python test suite, executes the nine business queries and uploads a report preview. The local database-enabled run passed **38 tests**, and the hosted CI workflow has also completed successfully.
+
+**2. Historical weekly lane alerts — [reporting workflow](.github/workflows/weekly_report.yml)**  
+The workflow runs on a Monday schedule or by manual dispatch. It advances a saved historical-week watermark, analyzes **deliveries completed during that week**, and compares lane rates with a same-state baseline calculated from **earlier completed deliveries**. An alert requires **at least 50 completed lane orders** and a late rate **at least twice the prior baseline**. If a lane is flagged, the workflow creates an open GitHub issue or comments on the existing one instead of opening duplicates. It uploads the reports and deploys the latest HTML report through GitHub Pages.
+
+The hosted replay, issue creation and Pages deployment have been demonstrated. For example, [Issue #1](https://github.com/VinayReddy-9877/delivery-performance-analytics/issues/1) records the historical week of **2017-11-06** for SP → RJ: **89 completed deliveries, 6 late (6.7%)**, or approximately **2.2×** the earlier same-state baseline. The [published dashboard](https://vinayreddy-9877.github.io/delivery-performance-analytics/) shows the most recently published historical reporting week.
+
+**Important:** this is a replay of **2016–2018 historical data**, not a live order feed or a purchase-time prediction service. Alerts become available after the relevant deliveries have completed.
+
+## Project structure
+
+```text
+delivery-performance-analytics/
+├── README.md
+├── requirements.txt
+├── run_project.bat
+├── compose.yaml
+├── data/
+│   ├── prepared/                # Historical order and item extracts
+│   └── incoming/examples/       # Synthetic insert and correction examples
+├── sql/
+│   ├── 01_staging/              # Source views
+│   ├── 02_cleaning/             # Cleaned order view
+│   ├── 03_marts/                # Fact orders and seller scorecard
+│   ├── 04_analysis/             # Nine business queries
+│   └── 05_quality/              # Reconciliation SQL
+├── src/delivery_analytics/      # Data, analysis, reports, refresh and CLI
+├── report/sample/              # Curated Excel, HTML, PDF and figures
+├── scripts/                    # Raw preparation and GitHub issue updates
+├── tests/                      # Business-rule, report, batch and SQL tests
+├── automation/README.md        # Workflow and refresh explanation
+├── docs/method.md              # Metric definitions and sensitivity tests
+└── .github/workflows/          # CI and weekly historical replay
+```
+
+## Run locally (Windows / PowerShell)
+
+**Requirements:** Python 3.12. Docker Desktop is needed only for the PostgreSQL path.
 
 ```powershell
+# From the repository folder
 py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
+
+# Python tests and a new report
 .\.venv\Scripts\python.exe -m pytest -q
 .\.venv\Scripts\python.exe -m src.delivery_analytics.cli build
 ```
 
-Reports are written to `report/runs/`; published output folders are not overwritten.
+You can also run `run_project.bat`. Each normal build creates its own folder under `report/runs/`; older published reports are not overwritten.
 
-**PostgreSQL (optional for local reporting, required for SQL verification):**
+### PostgreSQL and all SQL checks
 
 ```powershell
 docker compose up -d
 $env:DATABASE_URL = "postgresql://olist:olist@localhost:5433/olist"
+
 .\.venv\Scripts\python.exe -m src.delivery_analytics.cli build --postgres
 .\.venv\Scripts\python.exe -m src.delivery_analytics.cli sql-check
+
 $env:RUN_DB_TESTS = "1"
 .\.venv\Scripts\python.exe -m pytest -q
 ```
 
-**Try an incoming batch:**
+The PostgreSQL service uses **PostgreSQL 16**, exposed as `localhost:5433`. The verified local results were **96,478 fact orders, nine SQL analyses executed and 38 tests passed**.
+
+### Run a historical reporting week
 
 ```powershell
+.\.venv\Scripts\python.exe -m src.delivery_analytics.cli replay --next
+```
+
+Output is written under `report/weekly/<week-start>/`. The watermark records the last completed historical replay week.
+
+### Try an incremental data refresh
+
+```powershell
+# Synthetic demonstration: one new order and then a correction
 .\.venv\Scripts\python.exe -m src.delivery_analytics.cli refresh --batch data/incoming/examples/new_order
 .\.venv\Scripts\python.exe -m src.delivery_analytics.cli refresh --batch data/incoming/examples/correction
 ```
 
-These example orders are **synthetic** and do not affect the historical findings above. Real batches must follow the [documented order and item schema](data/README.md). Refreshes write new reports to `report/refreshes/` and do not replace an Excel file you already have open.
+The refresh validates compatible CSV batches, inserts new orders, replaces corrected order records, checks item-level GMV and prevents unchanged batches from being applied twice. It saves new versioned reports under `report/refreshes/` and retains previous reports. **The example records are synthetic and are not part of the published historical findings.**
 
-## How the weekly report works
+For your own data, follow the exact input contract in [data/README.md](data/README.md). This pipeline does **not** automatically interpret unrelated CSV datasets.
 
-```text
-Completed deliveries → validate → weekly lane rates
-                              → compare with earlier completed deliveries
-                              → report + lane alert (when threshold is crossed)
+## Data source and reproducibility
+
+The project uses the [Olist Brazilian E-Commerce Public Dataset](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce). The committed `data/prepared/` extracts support the demonstrated historical analysis, but they are **not the complete nine-table Olist release**.
+
+To prepare a separate dataset from the original nine downloaded CSVs:
+
+```powershell
+.\.venv\Scripts\python.exe -m scripts.prepare_olist --raw data/raw --out data/generated
 ```
 
-A weekly alert is evaluated **after delivery completion**, not when an order is purchased. The GitHub Actions workflows define SQL checks and historical replay. Hosted scheduling, GitHub issue creation and Pages deployment require verification in the destination repository; no live service is claimed here. See [automation notes](automation/README.md).
+The script checks for all nine source files, constructs order/item extracts, joins customer and seller locations, and estimates straight-line distances from ZIP-prefix coordinates. Payment and review files are checked but are **not joined into the reporting grain**. The generated output should be validated separately before replacing any published results; this full raw-data path has not yet been verified against the original nine tables in this repository.
 
-## Data and interpretation
+## Testing and reliability
 
-The included extract has 96,478 orders, with eight lacking an assessable delivery outcome. It is **not the complete Olist order population**. Lane comparisons use single-seller orders; merchandise GMV excludes freight. The benchmark gaps are comparisons for prioritization, **not causal estimates of preventable delays**. Without complete carrier events and reviews, the project cannot prove why a lane was late or quantify customer impact.
+The tests cover metric calculations, delivery-week timing, missing-month Excel behavior, batch corrections, duplicate batch prevention, report integrity, SQL business rules and Python/PostgreSQL parity. Data-quality checks prevent invalid order identifiers, inconsistent merchandise totals and malformed updates from being silently published.
 
-See [method and benchmark checks](docs/method.md) and [source data instructions](data/README.md). The code is MIT licensed; the underlying Olist data has separate [attribution and reuse terms](DATA_LICENSE.md).
+- **38/38 local tests passed** with PostgreSQL enabled.
+- **Nine PostgreSQL business queries executed** successfully on the local database.
+- **Hosted GitHub Actions CI and historical replay passed**, and a lane alert issue and Pages deployment were created.
+
+See [CI runs](https://github.com/VinayReddy-9877/delivery-performance-analytics/actions/workflows/ci.yml) and [weekly workflow runs](https://github.com/VinayReddy-9877/delivery-performance-analytics/actions/workflows/weekly_report.yml) for the hosted execution history.
+
+## Limitations and next steps
+
+This analysis describes a historical, primarily delivered-order extract. It does not measure all never-delivered or cancelled orders in the full Olist dataset. The data does not support a complete seller-handoff versus carrier-transit decomposition or a reliable review-score impact analysis in this project. Same-state routes are not distance-matched controls for cross-state routes, so the benchmark differences should not be interpreted as causal effects or expected savings. A real operational deployment would need a current order feed, carrier tracking data, monitoring of input freshness and evaluation of interventions.
+
+## License and attribution
+
+Project code is released under the [MIT License](LICENSE). The Olist dataset is separately licensed under **CC BY-NC-SA 4.0**; derived data and reports have their own attribution and reuse conditions. See [DATA_LICENSE.md](DATA_LICENSE.md). No affiliation with Olist is implied.
