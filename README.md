@@ -1,4 +1,4 @@
-# Delivery Performance Analytics
+﻿# Delivery Performance Analytics
 
 **Finding the shipping lanes that contribute most to late deliveries — and automating the follow-up.**
 
@@ -129,16 +129,6 @@ The hosted replay, issue creation and Pages deployment have been demonstrated. F
 
 **Important:** this is a replay of **2016–2018 historical data**, not a live order feed or a purchase-time prediction service. Alerts become available after the relevant deliveries have completed.
 
-### GitHub automation — visual proof
-
-![GitHub Actions historical reporting workflow with replay and deployment jobs completed](docs/images/github_workflow.png)
-
-*The hosted historical replay and GitHub Pages deployment both completed successfully. [Workflow history](https://github.com/VinayReddy-9877/delivery-performance-analytics/actions/workflows/weekly_report.yml).*
-
-![Automated GitHub issue for the SP to RJ shipping lane](docs/images/github_lane_alert.png)
-
-*An automatically generated issue documents the completed-delivery week, late count and prior baseline. [View the original issue](https://github.com/VinayReddy-9877/delivery-performance-analytics/issues/1).*
-
 ## Project structure
 
 ```text
@@ -246,3 +236,4 @@ This analysis describes a historical, primarily delivered-order extract. It does
 ## License and attribution
 
 Project code is released under the [MIT License](LICENSE). The Olist dataset is separately licensed under **CC BY-NC-SA 4.0**; derived data and reports have their own attribution and reuse conditions. See [DATA_LICENSE.md](DATA_LICENSE.md). No affiliation with Olist is implied.
+
