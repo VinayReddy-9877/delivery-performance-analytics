@@ -9,6 +9,10 @@
 
 **[Live dashboard](https://vinayreddy-9877.github.io/delivery-performance-analytics/)** · **[Sample Excel workbook](report/sample/operations_workbook.xlsx)** · **[One-page operations memo](report/sample/01_insight_memo.pdf)** · **[Sample HTML report](report/sample/weekly_brief.html)** · **[Automated lane alert](https://github.com/VinayReddy-9877/delivery-performance-analytics/issues/1)**
 
+[![Live delivery performance dashboard — week of November 13, 2017](docs/images/live_dashboard.png)](https://vinayreddy-9877.github.io/delivery-performance-analytics/)
+
+*Published historical weekly dashboard, with delivery KPIs and flagged shipping lanes. [Open the current dashboard](https://vinayreddy-9877.github.io/delivery-performance-analytics/).*
+
 ## Business problem
 
 An e-commerce operations team cannot investigate every delayed delivery. It needs to know **which shipping lanes account for the largest number of late orders**, whether the problem is persistent or concentrated in particular periods, and when to investigate an unusual increase.
@@ -27,9 +31,35 @@ I used historical orders from the [Olist Brazilian E-Commerce dataset](https://w
 
 **The recommendation:** review SP → RJ by completed-delivery week, investigate the sellers, carriers and periods behind spikes, and test any intervention before estimating financial benefit. The benchmark differences are **descriptive comparisons, not estimates of preventable delays**.
 
+## Analysis charts
+
+These charts come from the project’s included historical extract. The monthly charts use purchase months; the operational alert chart uses **weeks of completed deliveries** so it does not rely on outcomes that were unknown at purchase time.
+
+### 1. SP → RJ: monthly late-delivery rate
+
 ![SP to RJ late-delivery rate by purchase month](report/sample/figures/sp_rj_by_month.png)
 
-See the [methodology and benchmark sensitivity checks](docs/method.md) for the metric definitions and limitations.
+*The highest-volume priority lane experienced several spikes, including March 2018; the full-period average hides this variation.*
+
+### 2. Shipping lanes ranked by excess late orders
+
+![Shipping lanes ranked by excess late deliveries relative to the benchmark](report/sample/figures/lane_excess.png)
+
+*Prioritizing by the count of late deliveries above a descriptive benchmark helps focus on operational volume rather than the highest percentage alone.*
+
+### 3. Late-delivery rate across all months
+
+![Overall historical late-delivery rate by month](report/sample/figures/all_months.png)
+
+*Monthly volatility is important when interpreting an overall average.*
+
+### 4. SP → RJ: completed-delivery weekly trend
+
+![SP to RJ weekly completed-delivery late rates and historical benchmark](report/sample/figures/sp_rj_delivery_weeks.png)
+
+*The operational alert is evaluated after deliveries finish and uses earlier completed deliveries for its baseline.*
+
+See the [methodology and benchmark sensitivity checks](docs/method.md) for definitions, sample rules and limitations.
 
 ## What the project delivers
 
@@ -41,6 +71,12 @@ See the [methodology and benchmark sensitivity checks](docs/method.md) for the m
 | [Nine SQL analyses](sql/README.md) | Demonstrates analytical joins, CTEs, window functions, rolling periods, percentiles and lane benchmarking |
 | GitHub Actions reports | Runs quality checks and historical weekly reporting; uploads report artifacts |
 | [GitHub lane alert example](https://github.com/VinayReddy-9877/delivery-performance-analytics/issues/1) | Records an automatically flagged lane for follow-up |
+
+## Excel scorecard preview
+
+![Excel lane review scorecard with SUMIFS-based KPI calculations and adjustable alert threshold](docs/images/excel_scorecard.png)
+
+*The workbook contains lane source data, calculated scorecards, a month-by-lane comparison and an editable alert multiplier. [Open the workbook](report/sample/operations_workbook.xlsx).*
 
 ## How the analysis works
 
@@ -93,6 +129,16 @@ The hosted replay, issue creation and Pages deployment have been demonstrated. F
 
 **Important:** this is a replay of **2016–2018 historical data**, not a live order feed or a purchase-time prediction service. Alerts become available after the relevant deliveries have completed.
 
+### GitHub automation — visual proof
+
+![GitHub Actions historical reporting workflow with replay and deployment jobs completed](docs/images/github_workflow.png)
+
+*The hosted historical replay and GitHub Pages deployment both completed successfully. [Workflow history](https://github.com/VinayReddy-9877/delivery-performance-analytics/actions/workflows/weekly_report.yml).*
+
+![Automated GitHub issue for the SP to RJ shipping lane](docs/images/github_lane_alert.png)
+
+*An automatically generated issue documents the completed-delivery week, late count and prior baseline. [View the original issue](https://github.com/VinayReddy-9877/delivery-performance-analytics/issues/1).*
+
 ## Project structure
 
 ```text
@@ -112,6 +158,7 @@ delivery-performance-analytics/
 │   └── 05_quality/              # Reconciliation SQL
 ├── src/delivery_analytics/      # Data, analysis, reports, refresh and CLI
 ├── report/sample/              # Curated Excel, HTML, PDF and figures
+├── docs/images/                 # Dashboard, workbook and automation screenshots
 ├── scripts/                    # Raw preparation and GitHub issue updates
 ├── tests/                      # Business-rule, report, batch and SQL tests
 ├── automation/README.md        # Workflow and refresh explanation
