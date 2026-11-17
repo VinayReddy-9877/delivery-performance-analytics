@@ -1,0 +1,2 @@
+order_id,order_item_id,seller_id,category,price
+DEMO-SYNTHETIC-ORDER-001,1,ecccfa2bb93b34a3bf033cc5d1dcdc69,cool_stuff,125.0

@@ -1,0 +1,38 @@
+name: Tests and PostgreSQL analysis
+on:
+  push:
+  pull_request:
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: olist
+          POSTGRES_USER: olist
+          POSTGRES_PASSWORD: olist
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U olist -d olist"
+          --health-interval 5s --health-retries 12
+    env:
+      DATABASE_URL: postgresql://olist:olist@localhost:5432/olist
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Build analytical tables and report
+        run: python -m src.delivery_analytics.cli build --out report/ci --postgres
+      - run: python -m pytest -q
+        env:
+          RUN_DB_TESTS: '1'
+      - name: Execute all business SQL
+        run: python -m src.delivery_analytics.cli sql-check
+      - uses: actions/upload-artifact@v4
+        with:
+          name: report-preview
+          path: report/ci/

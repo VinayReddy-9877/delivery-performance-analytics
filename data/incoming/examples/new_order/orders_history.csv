@@ -1,0 +1,2 @@
+order_id,customer_unique_id,seller_id,seller_count,order_purchase_timestamp,order_delivered_customer_date,order_estimated_delivery_date,customer_state,gmv,promise_days,distance_km,earliest_deadline,main_category,seller_state
+DEMO-SYNTHETIC-ORDER-001,DEMO-SYNTHETIC-CUSTOMER,ecccfa2bb93b34a3bf033cc5d1dcdc69,1,2018-08-22 10:00:00,2018-09-15 15:00:00,2018-09-01 00:00:00,SP,125.0,9.583333333333334,566.04099,2018-08-24 12:00:00,health_beauty,PR

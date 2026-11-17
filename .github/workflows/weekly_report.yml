@@ -1,0 +1,78 @@
+name: Historical weekly lane alerts
+on:
+  schedule:
+    - cron: '20 5 * * 1'
+  workflow_dispatch:
+permissions:
+  contents: write
+  issues: write
+  pages: write
+  id-token: write
+concurrency:
+  group: weekly-replay
+  cancel-in-progress: false
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: olist
+          POSTGRES_USER: olist
+          POSTGRES_PASSWORD: olist
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U olist -d olist"
+          --health-interval 5s --health-retries 12
+    env:
+      DATABASE_URL: postgresql://olist:olist@localhost:5432/olist
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Advance one historical week
+        run: python -m src.delivery_analytics.cli replay --next --postgres
+      - run: python -m src.delivery_analytics.cli sql-check
+      - name: Save replay progress
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f state/replay_watermark.txt
+          git commit -m "Record historical reporting week" || true
+          git push
+      - name: Update one issue per alerted lane
+        run: |
+          python scripts/post_lane_issues.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: weekly-report
+          path: report/weekly/
+      - name: Prepare Pages from latest report
+        if: vars.PUBLISH_PAGES == 'true'
+        run: |
+          mkdir -p public/figures
+          latest=$(find report/weekly -mindepth 1 -maxdepth 1 -type d | sort | tail -n 1)
+          cp "$latest/weekly_brief.html" public/index.html
+          cp "$latest"/figures/*.png public/figures/
+      - uses: actions/upload-pages-artifact@v3
+        if: vars.PUBLISH_PAGES == 'true'
+        with:
+          path: public/
+  deploy:
+    if: vars.PUBLISH_PAGES == 'true'
+    needs: replay
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Deploy historical report
+        id: deploy
+        uses: actions/deploy-pages@v4

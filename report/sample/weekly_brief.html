@@ -1,0 +1,44 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Delivery Performance | Olist</title><style>
+body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;max-width:1050px;margin:36px auto;padding:0 24px;color:#1b3042;line-height:1.5;background:#f9fafc}
+h1{font-size:33px;margin-bottom:4px}h2{margin-top:35px;font-size:22px}small,.muted{color:#637789}
+.lead{font-size:19px;max-width:850px}.cards{display:flex;flex-wrap:wrap;gap:14px;margin:24px 0}
+.card{background:#fff;padding:17px 20px;border:1px solid #dde5eb;border-radius:12px;min-width:190px;flex:1}
+.card strong{display:block;font-size:27px}.card span{font-size:13px;color:#617489}
+section{background:#fff;border:1px solid #e1e8ee;border-radius:12px;padding:19px 22px;margin:20px 0}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:10px;border-bottom:1px solid #e8edf1}th{background:#f2f5f7}
+img{max-width:100%;height:auto;margin:10px 0 16px}ul{padding-left:20px}.note{font-size:13px;color:#687789}
+</style></head><body><small>Historical week of 2018-03-05</small><h1>Delivery Performance Analytics</h1><p class="lead">Which shipping lanes need attention first? Rank delays by affected orders, not only by the highest late rate.</p><div class="cards"><div class="card"><span>Completed this week</span><strong>1,556</strong></div><div class="card"><span>Late deliveries this week</span><strong>122</strong></div><div class="card"><span>Late rate this week</span><strong>7.8%</strong></div><div class="card"><span>Flagged lanes</span><strong>2</strong></div></div><section><h2>This week: completed deliveries</h2>
+<p><b>2018-03-05</b> through the following six days; outcomes were
+known only after deliveries were completed. Of <b>1,556</b> completed
+single-seller deliveries, <b>122</b> were late
+(<b>7.8%</b>). The benchmark from <i>earlier completed</i> same-state
+deliveries was <b>3.4%</b>.</p>
+<p><b>Flagged lanes (2):</b> SP → RJ, SP → MG.
+An alert is a retrospective detection at the end of the delivery week,
+not an advance prediction on purchase day.</p>
+<img src="figures/sp_rj_delivery_weeks.png"
+alt="SP to RJ rate by completed delivery week">
+<table><thead><tr><th>Lane</th><th>Completed</th><th>Late</th><th>Rate</th>
+</tr></thead><tbody><tr><td>SP → SP</td><td>466</td><td>26</td><td>5.6%</td></tr><tr><td>SP → RJ</td><td>92</td><td>22</td><td>23.9%</td></tr><tr><td>SP → MG</td><td>119</td><td>11</td><td>9.2%</td></tr><tr><td>SP → DF</td><td>33</td><td>6</td><td>18.2%</td></tr><tr><td>SP → RS</td><td>75</td><td>5</td><td>6.7%</td></tr><tr><td>PR → RJ</td><td>27</td><td>4</td><td>14.8%</td></tr><tr><td>MG → RJ</td><td>13</td><td>4</td><td>30.8%</td></tr><tr><td>PR → SP</td><td>81</td><td>3</td><td>3.7%</td></tr></tbody></table></section><section><h2>Historical context (full extract)</h2><p>Across <b>96,470</b> assessed deliveries, <b>6,534</b> were late (<b>6.8%</b>), representing <b>R$ 985,924</b> in merchandise value associated with late deliveries. This full-history view uses the complete historical extract and is not restricted to what was known at this replay week.</p></section><section><h2>Recommendation: monitor SP → RJ first</h2>
+<p><b>1,147 of 8,048</b> assessed orders were late
+(14.3%), versus 4.6% for same-state deliveries.
+This is roughly <b>780 excess late orders</b> at that benchmark. Against other cross-state lanes (7.2%), the gap is about <b>567</b> orders.
+The lane accounts for <b>17.6%</b> of all late orders and
+<b>R$ 152,858</b> in late-order merchandise value.</p>
+<p>Late performance reached <b>42% in March 2018</b>, then fell. Monitor the lane weekly;
+review carrier and promise-setting records when it crosses the alert threshold.</p>
+<img alt="Late rate by month for SP to RJ" src="figures/sp_rj_by_month.png"></section><section><h2>Where the exposure is concentrated</h2>
+<p>RJ customers account for <b>1,495</b> late orders (22.9%
+of all late deliveries). The top five lanes have roughly <b>1,294</b> excess
+late orders compared with the same-state benchmark.</p>
+<img alt="Top lanes ranked by benchmark excess" src="figures/lane_excess.png">
+<table><thead><tr><th>Lane</th><th>Assessed</th><th>Late</th><th>Late rate</th><th>Excess vs benchmark</th></tr></thead><tbody><tr><td>SP → RJ</td><td>8,048</td><td>1,147</td><td>14.3%</td><td>780</td></tr><tr><td>SP → BA</td><td>2,278</td><td>297</td><td>13.0%</td><td>193</td></tr><tr><td>SP → SC</td><td>2,306</td><td>222</td><td>9.6%</td><td>117</td></tr><tr><td>SP → ES</td><td>1,444</td><td>180</td><td>12.5%</td><td>114</td></tr><tr><td>SP → CE</td><td>961</td><td>133</td><td>13.8%</td><td>89</td></tr><tr><td>SP → RS</td><td>3,540</td><td>238</td><td>6.7%</td><td>77</td></tr><tr><td>PR → RJ</td><td>951</td><td>117</td><td>12.3%</td><td>74</td></tr><tr><td>SP → MA</td><td>486</td><td>93</td><td>19.1%</td><td>71</td></tr></tbody></table></section><section><h2>Recommended next actions</h2><ul>
+<li><b>Logistics:</b> investigate SP to RJ in the spike months; compare transit and seller handoff once tracking data is available.</li>
+<li><b>Operations analyst:</b> review completed-delivery weekly alerts for lanes with at least 50 assessed orders and 2× the prior-history same-state rate.</li>
+<li><b>Customer operations:</b> measure review scores and undelivered orders after obtaining the full original order and reviews tables.</li></ul>
+<img alt="Overall late rate by month" src="figures/all_months.png"></section><p class="note">Source: prepared Olist extract (2016–2018). 8 orders in this extract lack an assessable delivered date.
+The prepared extract is not the full Olist order universe. Multi-seller orders are excluded from lane analysis.
+Excess orders are a benchmark comparison, not a causal estimate or committed savings.
+Late-order GMV is merchandise associated with delay, not revenue lost. Historical replay is not live incoming data.</p></body></html>
